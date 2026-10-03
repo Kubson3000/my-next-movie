@@ -15,9 +15,9 @@ private struct RootView: View {
             Tab("Movies", systemImage: symbolNameMovies) {
                 MovieListView(viewModel: MovieListViewModel(loadMovies: loadSampleMovies))
             }
-            // TODO: Lab 2, task 2. Add a second tab: `Tab("Search", systemImage: symbolNameSearch,
-            // role: .search)` with `SearchView(viewModel: SearchViewModel(searchMovies: searchSampleMovies))`.
-            // The `.search` role puts the tab apart from the others, at the trailing edge.
+            Tab("Search", systemImage: symbolNameSearch, role: .search) {
+                SearchView(viewModel: SearchViewModel(searchMovies: searchSampleMovies))
+            }
         }
     }
 }
