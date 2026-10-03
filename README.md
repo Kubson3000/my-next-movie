@@ -91,9 +91,11 @@ git push
 Materiały do kolejnych zajęć pojawiają się w repozytorium przedmiotu. Pobierasz je tak:
 
 ```sh
-git pull upstream main
+git pull --no-rebase --no-edit upstream main
 git push
 ```
+
+`--no-rebase` łączy moje zmiany z Twoimi commitami. Bez tej opcji Git zgłasza błąd `Need to specify how to reconcile divergent branches`. `--no-edit` pomija edytor z opisem commita.
 
 Jeśli Git zgłosi konflikt, popraw zaznaczone pliki, potem `git add` i `git commit`.
 
@@ -121,7 +123,7 @@ Jeśli jest inaczej, znajdź swój przypadek poniżej.
 ```sh
 git remote rename origin upstream
 git remote add origin https://github.com/TWOJ_LOGIN/my-next-movie.git
-git pull upstream main
+git pull --no-rebase --no-edit upstream main
 git push -u origin main
 ```
 
@@ -133,7 +135,7 @@ Dodaj prowadzącego w Settings, Collaborators.
 
 ```sh
 git remote add upstream https://github.com/fwsoft/my-next-movie.git
-git pull upstream main
+git pull --no-rebase --no-edit upstream main
 git push
 ```
 

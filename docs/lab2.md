@@ -10,7 +10,7 @@ Dane nadal są przykładowe, z `Services/SampleMovies.swift`. Wyszukiwanie w TMD
 2. Pobierz nowe pliki:
 
 ```sh
-git pull upstream main
+git pull --no-rebase --no-edit upstream main
 git push
 ```
 
