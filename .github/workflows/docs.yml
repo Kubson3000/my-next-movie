@@ -16,6 +16,8 @@ on:
 jobs:
   pdf:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
       - uses: pandoc/actions/setup@v1
@@ -36,3 +38,17 @@ jobs:
         with:
           name: labs-pdf
           path: docs/*.pdf
+      - name: Publish the PDFs as a release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag=labs-pdf
+          title="Instrukcje do laboratoriów (PDF)"
+          notes="PDF z instrukcją do każdego laboratorium. Aktualizowane automatycznie przy każdej zmianie w docs/."
+          if gh release view "$tag" >/dev/null 2>&1; then
+            gh release edit "$tag" --title "$title" --notes "$notes"
+          else
+            gh release create "$tag" --title "$title" --notes "$notes" --target "$GITHUB_SHA"
+          fi
+          gh release upload "$tag" docs/lab*.pdf --clobber

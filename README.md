@@ -30,7 +30,7 @@ Zadania na każde zajęcia są w folderze `docs/`:
 - Lab 3: dane z TMDB ([PDF](docs/lab3.pdf), [Markdown](docs/lab3.md))
 - Lab 4: dane na urządzeniu, SwiftData ([PDF](docs/lab4.pdf), [Markdown](docs/lab4.md))
 
-PDF-y leżą w `docs/` obok plików Markdown i przychodzą razem z `git pull`. Buduje je polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)).
+PDF-y leżą w `docs/` obok plików Markdown i przychodzą razem z `git pull`. Można je też pobrać z [Releases, Instrukcje do laboratoriów](../../releases/tag/labs-pdf). Buduje je polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)).
 
 Miejsca do uzupełnienia oznacza komentarz `// TODO: Lab N`. Listę wszystkich pokazuje Xcode: Find Navigator (⌘⇧F), hasło `TODO: Lab`. Od lab 3 Państwo piszą cały kod sami według instrukcji, bez gotowych miejsc do uzupełnienia.
 
