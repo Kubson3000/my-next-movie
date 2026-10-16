@@ -27,10 +27,12 @@ Zadania na każde zajęcia są w folderze `docs/`:
 
 - [Lab 1: podstawy SwiftUI](docs/lab1.md)
 - [Lab 2: ekran wyszukiwania](docs/lab2.md)
+- [Lab 3: dane z TMDB](docs/lab3.md)
+- [Lab 4: dane na urządzeniu (SwiftData)](docs/lab4.md)
 
-Wersję do druku (PDF) zbudujesz poleceniem `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)). Gotowe PDF-y są też w GitHub Actions, workflow Docs, artefakt `labs-pdf`.
+Wersję do druku (PDF) buduje polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)). Gotowe PDF-y są też w GitHub Actions, workflow Docs, artefakt `labs-pdf`.
 
-Miejsca do uzupełnienia oznacza komentarz `// TODO: Lab N`. Listę wszystkich znajdziesz w Xcode: Find Navigator (⌘⇧F), szukaj `TODO: Lab`.
+Miejsca do uzupełnienia oznacza komentarz `// TODO: Lab N`. Listę wszystkich pokazuje Xcode: Find Navigator (⌘⇧F), hasło `TODO: Lab`. Od lab 3 Państwo piszą cały kod sami według instrukcji, bez gotowych miejsc do uzupełnienia.
 
 Testy są dwojakie:
 
@@ -60,20 +62,20 @@ Testy uruchamia plan `MyNextMovie.xctestplan`. Zbiera pokrycie kodu (Report navi
 
 ## Nowe laboratoria
 
-Materiały do kolejnych zajęć pojawiają się w repozytorium przedmiotu. Pobierasz je tak:
+Materiały do kolejnych zajęć pojawiają się w repozytorium przedmiotu. Pobierają je Państwo tak:
 
 ```sh
 git pull --no-rebase --no-edit upstream main
 git push
 ```
 
-`--no-rebase` łączy moje zmiany z Twoimi commitami. Bez tej opcji Git zgłasza błąd `Need to specify how to reconcile divergent branches`. `--no-edit` pomija edytor z opisem commita.
+`--no-rebase` łączy moje zmiany z Państwa commitami. Bez tej opcji Git zgłasza błąd `Need to specify how to reconcile divergent branches`. `--no-edit` pomija edytor z opisem commita.
 
-Jeśli Git zgłosi konflikt, popraw zaznaczone pliki, potem `git add` i `git commit`.
+Jeśli Git zgłosi konflikt, proszę poprawić zaznaczone pliki, potem `git add` i `git commit`.
 
 ## Gdy `pull` nie działa
 
-Sprawdź, jakie repozytoria zna Twój projekt:
+Proszę sprawdzić, jakie repozytoria zna Państwa projekt:
 
 ```sh
 git remote -v
@@ -86,11 +88,11 @@ origin    https://github.com/TWOJ_LOGIN/my-next-movie.git
 upstream  https://github.com/fwsoft/my-next-movie.git
 ```
 
-Jeśli jest inaczej, znajdź swój przypadek poniżej.
+Jeśli jest inaczej, proszę znaleźć swój przypadek poniżej.
 
 ### Klon repozytorium przedmiotu bez zmiany `origin`
 
-`origin` wskazuje na `fwsoft/my-next-movie`, a `upstream` nie ma. Na GitHubie utwórz **puste, prywatne** repozytorium `my-next-movie`, bez README i bez `.gitignore`. Potem:
+`origin` wskazuje na `fwsoft/my-next-movie`, a `upstream` nie ma. Proszę utworzyć na GitHubie **puste, prywatne** repozytorium `my-next-movie`, bez README i bez `.gitignore`. Potem:
 
 ```sh
 git remote rename origin upstream
@@ -99,11 +101,11 @@ git pull --no-rebase --no-edit upstream main
 git push -u origin main
 ```
 
-Dodaj prowadzącego w Settings, Collaborators.
+Proszę dodać prowadzącego w Settings, Collaborators.
 
 ### Fork
 
-`origin` wskazuje na Twojego forka, a `upstream` nie ma. Dodaj go:
+`origin` wskazuje na Państwa forka, a `upstream` nie ma. Proszę go dodać:
 
 ```sh
 git remote add upstream https://github.com/fwsoft/my-next-movie.git
@@ -111,7 +113,7 @@ git pull --no-rebase --no-edit upstream main
 git push
 ```
 
-Fork publicznego repozytorium jest publiczny. Żeby mieć prywatne, utwórz na GitHubie puste, prywatne repozytorium i ustaw je jako `origin`:
+Fork publicznego repozytorium jest publiczny. Żeby mieć prywatne, proszę utworzyć na GitHubie puste, prywatne repozytorium i ustawić je jako `origin`:
 
 ```sh
 git remote set-url origin https://github.com/TWOJ_LOGIN/my-next-movie.git
@@ -122,9 +124,9 @@ git push -u origin main
 
 `git remote -v` zgłasza błąd `not a git repository`. Najprościej zacząć od nowa i przenieść swoją pracę:
 
-1. Zmień nazwę starego folderu, np. na `my-next-movie-old`.
-2. Wykonaj kroki z sekcji **Start**. Dostaniesz nowy folder z aktualnymi materiałami.
-3. Skopiuj ze starego folderu do nowego pliki, które zmieniasz w zadaniach. Nadpisz nimi nowe wersje. Po lab 1 są to:
+1. Proszę zmienić nazwę starego folderu, np. na `my-next-movie-old`.
+2. Proszę wykonać kroki z sekcji **Start**. Powstanie nowy folder z aktualnymi materiałami.
+3. Proszę skopiować ze starego folderu do nowego pliki zmienione w zadaniach i nadpisać nimi nowe wersje. Po lab 1 są to:
 
 ```
 MyNextMovie/Models/Movie.swift
@@ -136,8 +138,8 @@ MyNextMovieTests/MovieTests.swift
 MyNextMovieTests/MovieListViewModelTests.swift
 ```
 
-4. Skopiuj `Config/Secrets.xcconfig`, jeśli go masz.
-5. Uruchom aplikację i testy. Potem commit i push:
+4. Proszę skopiować `Config/Secrets.xcconfig`, jeśli istnieje.
+5. Proszę uruchomić aplikację i testy. Potem commit i push:
 
 ```sh
 git add .
@@ -145,13 +147,13 @@ git commit -m "feat: lab 1, movie grid and details"
 git push
 ```
 
-Nie kopiuj całego folderu `MyNextMovie/`. Stare wersje nadpiszą pliki, które zmieniły się w kolejnych laboratoriach.
+Proszę nie kopiować całego folderu `MyNextMovie/`. Stare wersje nadpiszą pliki, które zmieniły się w kolejnych laboratoriach.
 
 ## Klucze API
 
-Klucze wpisujesz w `Config/Secrets.xcconfig`. Ten plik jest w `.gitignore` i nie trafia do repozytorium.
+Klucze wpisuje się w `Config/Secrets.xcconfig`. Ten plik jest w `.gitignore` i nie trafia do repozytorium.
 
-W kodzie odczytujesz je funkcjami z `MyNextMovie/Config/AppConfig.swift`:
+W kodzie odczytują je funkcje z `MyNextMovie/Config/AppConfig.swift`:
 
 ```swift
 tmdbAPIKey()
