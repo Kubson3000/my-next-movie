@@ -90,7 +90,8 @@ Funkcje w `Storage.swift` mają dostawać `context` jako parametr, a aktualną d
 
 ### `Storage/StoredModels.swift`
 
-- Model `SavedMovie`: wszystkie pola `Movie` (`movieId` zamiast `id`, unikalne) i `savedAt: Date`. `init(movie: Movie, savedAt: Date)` przepisuje pola z filmu. Zapisany film ma wszystkie dane, więc zakładka Saved działa bez sieci.
+- Model `SavedMovie`: wszystkie pola `Movie` (`movieId` zamiast `id`, unikalne), `savedAt: Date` i `isInCloud: Bool = false`. `init(movie: Movie, savedAt: Date)` przepisuje pola z filmu. Zapisany film ma wszystkie dane, więc zakładka Saved działa bez sieci.
+- `isInCloud` mówi, czy konto w Supabase ma już ten film. Przyda się w lab 5, do tego czasu zawsze jest `false`.
 - Stała `storedModelTypes: [any PersistentModel.Type]`: lista wszystkich modeli, na razie `[SavedMovie.self]`. W zadaniach 2 i 3 dochodzą kolejne.
 
 ### `Storage/Storage.swift`
@@ -163,7 +164,6 @@ Struktura `SavedMovieTests`:
 | --- | --- |
 | `toggleSavesThenRemoves` | pierwsze `toggleSavedMovie` zapisuje, drugie usuwa |
 | `savedCopyKeepsEveryField` | `moviesFromSaved` z bazy daje ten sam `Movie`, który zapisano |
-| `savingTwiceKeepsOneCopy` | po zapisie, usunięciu i ponownym zapisie w bazie jest jeden film |
 
 Proszę sprawdzić w aplikacji:
 

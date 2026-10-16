@@ -18,6 +18,7 @@ for source in docs/lab*.md; do
     echo "$source -> docs/$name.pdf"
     pandoc "$source" --from gfm+smart --to typst --standalone \
         --shift-heading-level-by=-1 \
+        --wrap=none \
         --template docs/pandoc.typ \
         --lua-filter docs/links.lua \
         --lua-filter docs/typography.lua \
