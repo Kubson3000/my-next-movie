@@ -9,6 +9,9 @@
 #let course = "Zaawansowane programowanie na platformę iOS"
 
 #let lab(title: none, body) = {
+  // No creation date in the PDF: the same source always gives the same file,
+  // so git sees a change only when the content changes.
+  set document(date: none)
   set document(title: title)
   set page(
     paper: "a4",

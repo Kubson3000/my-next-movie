@@ -1,6 +1,8 @@
 #!/bin/sh
-# Builds the lab instructions: docs/labN.md -> build/docs/labN.pdf.
-# Markdown is the only source. pandoc turns it into Typst, Typst makes the PDF.
+# Builds the lab instructions: docs/labN.md -> docs/labN.pdf.
+# Markdown is the source. pandoc turns it into Typst, Typst makes the PDF.
+# The PDFs are committed next to the Markdown, so students get them with git pull.
+# Run this after every change in docs/ and commit the PDFs too.
 #
 #   scripts/build-docs.sh
 #
@@ -13,7 +15,7 @@ mkdir -p build/docs
 status=0
 for source in docs/lab*.md; do
     name=$(basename "$source" .md)
-    echo "$source -> build/docs/$name.pdf"
+    echo "$source -> docs/$name.pdf"
     pandoc "$source" --from gfm+smart --to typst --standalone \
         --shift-heading-level-by=-1 \
         --template docs/pandoc.typ \
@@ -21,6 +23,6 @@ for source in docs/lab*.md; do
         --lua-filter docs/typography.lua \
         --output "build/docs/$name.typ" &&
         typst compile --ignore-system-fonts --font-path docs/fonts --root . \
-            "build/docs/$name.typ" "build/docs/$name.pdf" || status=1
+            "build/docs/$name.typ" "docs/$name.pdf" || status=1
 done
 exit $status

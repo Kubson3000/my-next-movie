@@ -25,12 +25,12 @@ Architektura: SwiftUI + MVVM. Nowe pliki dodane do folderów `MyNextMovie/` i `M
 
 Zadania na każde zajęcia są w folderze `docs/`:
 
-- [Lab 1: podstawy SwiftUI](docs/lab1.md)
-- [Lab 2: ekran wyszukiwania](docs/lab2.md)
-- [Lab 3: dane z TMDB](docs/lab3.md)
-- [Lab 4: dane na urządzeniu (SwiftData)](docs/lab4.md)
+- Lab 1: podstawy SwiftUI ([PDF](docs/lab1.pdf), [Markdown](docs/lab1.md))
+- Lab 2: ekran wyszukiwania ([PDF](docs/lab2.pdf), [Markdown](docs/lab2.md))
+- Lab 3: dane z TMDB ([PDF](docs/lab3.pdf), [Markdown](docs/lab3.md))
+- Lab 4: dane na urządzeniu, SwiftData ([PDF](docs/lab4.pdf), [Markdown](docs/lab4.md))
 
-Wersję do druku (PDF) buduje polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)). Gotowe PDF-y są też w GitHub Actions, workflow Docs, artefakt `labs-pdf`.
+PDF-y leżą w `docs/` obok plików Markdown i przychodzą razem z `git pull`. Buduje je polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)).
 
 Miejsca do uzupełnienia oznacza komentarz `// TODO: Lab N`. Listę wszystkich pokazuje Xcode: Find Navigator (⌘⇧F), hasło `TODO: Lab`. Od lab 3 Państwo piszą cały kod sami według instrukcji, bez gotowych miejsc do uzupełnienia.
 
