@@ -1,10 +1,10 @@
 # Lab 2: ekran wyszukiwania
 
-Na tych zajęciach dodajesz drugi ekran aplikacji. Użytkownik wpisuje tytuł albo słowo z opisu filmu i wybiera gatunek. Lista wyników odświeża się sama w trakcie pisania.
+Na tych zajęciach dodają Państwo drugi ekran aplikacji. Użytkownik wpisuje tytuł albo słowo z opisu filmu i wybiera gatunek. Lista wyników odświeża się sama w trakcie pisania.
 
-Dane nadal są przykładowe, z `Services/SampleMovies.swift`. Wyszukiwanie w TMDB dojdzie na kolejnych zajęciach. Ekran się nie zmieni, podmienisz tylko funkcję, która szuka filmów.
+Dane nadal są przykładowe, z `Services/SampleMovies.swift`. Wyszukiwanie w TMDB dojdzie na kolejnych zajęciach. Ekran się nie zmieni, podmienią Państwo tylko funkcję, która szuka filmów.
 
-## Zanim zaczniesz
+## Zanim Państwo zaczną
 
 1. Lab 1 musi być skończony.
 
@@ -25,7 +25,7 @@ MyNextMovie/Services/SampleMovies.swift  nowa funkcja searchSampleMovies
 MyNextMovie/MyNextMovieApp.swift         miejsce na zakładkę Search
 ```
 
-Miejsca do uzupełnienia znajdziesz w Xcode: Find Navigator (⌘⇧F), szukaj `TODO: Lab 2`.
+Miejsca do uzupełnienia znajdą Państwo w Xcode: Find Navigator (⌘⇧F), hasło `TODO: Lab 2`.
 
 ## Jak to działa
 
@@ -45,13 +45,13 @@ Teraz ta funkcja to `searchSampleMovies`. Filtruje przykładowe filmy funkcją `
 
 `noGenreId` oznacza "dowolny gatunek". Pusty tekst oznacza "dowolny tytuł".
 
-Kiedy użytkownik pisze, każda litera zmienia `viewModel.query`. Widok nie szuka po każdej literze. Czeka 300 ms od ostatniej zmiany i dopiero wtedy woła `viewModel.search()`. Robi to `.task(id:)` w `SearchView`. Gdy `id` się zmienia, SwiftUI przerywa poprzednie zadanie i startuje nowe. Ten kod jest gotowy. Przeczytaj go, bo pojawi się na kolejnych zajęciach.
+Kiedy użytkownik pisze, każda litera zmienia `viewModel.query`. Widok nie szuka po każdej literze. Czeka 300 ms od ostatniej zmiany i dopiero wtedy woła `viewModel.search()`. Robi to `.task(id:)` w `SearchView`. Gdy `id` się zmienia, SwiftUI przerywa poprzednie zadanie i startuje nowe. Ten kod jest gotowy. Proszę go przeczytać, bo pojawi się na kolejnych zajęciach.
 
 ## Zadanie 1: logika wyszukiwania
 
 Funkcje w `Models/Search.swift`:
 
-1. `movieContainsText`: czy tekst jest w tytule albo w opisie filmu. Użyj gotowej funkcji `textContains`. Ona ignoruje wielkość liter i polskie znaki.
+1. `movieContainsText`: czy tekst jest w tytule albo w opisie filmu. Proszę użyć gotowej funkcji `textContains`. Ona ignoruje wielkość liter i polskie znaki.
 2. `filterMovies`: filmy, które pasują do tekstu i do gatunku.
 
 Szkielet pętli w `filterMovies`:
@@ -72,7 +72,7 @@ for movie in movies {
 
 Metody w `ViewModels/SearchViewModel.swift`:
 
-1. `search`: szuka filmów i ustawia `state`. Wzoruj się na `load` z `MovieListViewModel`. Gdy tekst jest pusty i nie wybrano gatunku, nie szukaj. Ustaw wtedy `.idle`.
+1. `search`: szuka filmów i ustawia `state`. Wzorem jest `load` z `MovieListViewModel`. Gdy tekst jest pusty i nie wybrano gatunku, funkcja nie szuka, tylko ustawia `.idle`.
 2. `toggleGenre`: pierwsze kliknięcie wybiera gatunek, drugie go odznacza.
 
 Testy do napisania w `MyNextMovieTests/SearchTests.swift`:
@@ -82,13 +82,13 @@ Testy do napisania w `MyNextMovieTests/SearchTests.swift`:
 3. `SearchViewModelTests/passesTrimmedQueryAndGenreToSearch`
 4. `SearchViewModelTests/togglingSelectedGenreClearsIt`
 
-Komentarz nad każdym testem mówi, co sprawdzić. Napisz test i usuń `.disabled(...)`. Test, który woła `await`, musi być `async`.
+Komentarz nad każdym testem mówi, co sprawdzić. Proszę napisać test i usunąć `.disabled(...)`. Test, który woła `await`, musi być `async`.
 
 Po tym zadaniu testy z `SearchTests.swift` przechodzą. Na ekranie jeszcze nic nie widać.
 
 ## Zadanie 2: ekran
 
-Najpierw zakładka. W `MyNextMovieApp.swift` dodaj drugi `Tab` z `SearchView`. Dokładny kod jest w komentarzu `TODO`. Uruchom aplikację. Na dole jest zakładka z lupą. Ekran już działa, ale wyniki to tylko napis z ich liczbą.
+Najpierw zakładka. W `MyNextMovieApp.swift` proszę dodać drugi `Tab` z `SearchView`. Dokładny kod jest w komentarzu `TODO`. Po uruchomieniu aplikacji na dole jest zakładka z lupą. Ekran już działa, ale wyniki to tylko napis z ich liczbą.
 
 Teraz widoki w `Views/SearchView.swift`:
 
@@ -97,9 +97,9 @@ Teraz widoki w `Views/SearchView.swift`:
 3. `SearchResults`: lista wyników albo komunikat "brak wyników". Gotowy komunikat to `ContentUnavailableView.search(text:)`.
 4. `SearchResultRow`: mały plakat po lewej, tytuł, rok z gatunkiem i ocena po prawej. Kliknięcie otwiera szczegóły filmu, tak jak w siatce z lab 1.
 
-Sprawdzaj każdy widok w podglądzie (Canvas, ⌥⌘↩) w `SearchView.swift`. Podgląd używa przykładowych filmów.
+Każdy widok proszę sprawdzać w podglądzie (Canvas, ⌥⌘↩) w `SearchView.swift`. Podgląd używa przykładowych filmów.
 
-Sprawdź w aplikacji:
+Proszę sprawdzić w aplikacji:
 
 1. "matrix" znajduje The Matrix.
 2. "wormhole" znajduje Interstellar, bo to słowo jest w opisie.
@@ -111,7 +111,7 @@ Sprawdź w aplikacji:
 
 ## Na kolejne zajęcia
 
-Wpisz klucz TMDB do `Config/Secrets.xcconfig`. Instrukcja jest w README, w sekcji Klucze API. Bez klucza nie pobierzesz prawdziwych filmów.
+Proszę wpisać klucz TMDB do `Config/Secrets.xcconfig`. Instrukcja jest w README, w sekcji Klucze API. Bez klucza aplikacja nie pobierze prawdziwych filmów.
 
 ## Dokumentacja
 
