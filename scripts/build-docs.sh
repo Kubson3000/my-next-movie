@@ -18,6 +18,7 @@ for source in docs/lab*.md; do
         --shift-heading-level-by=-1 \
         --template docs/pandoc.typ \
         --lua-filter docs/links.lua \
+        --lua-filter docs/typography.lua \
         --output "build/docs/$name.typ" &&
         typst compile --ignore-system-fonts --font-path docs/fonts --root . \
             "build/docs/$name.typ" "build/docs/$name.pdf" || status=1

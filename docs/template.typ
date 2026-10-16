@@ -19,6 +19,9 @@
     font: ("New Computer Modern", "DejaVu Sans Mono"),
     lang: "pl",
     size: 11pt,
+    // No widows or orphans: a paragraph never leaves a single line at the bottom
+    // or the top of a page. A last line with one short word (a runt) costs extra too.
+    costs: (widow: 10000%, orphan: 10000%, runt: 300%),
   )
   set par(
     justify: true,
@@ -27,12 +30,7 @@
     first-line-indent: 1.5em,
   )
 
-  // Sections numbered like \section and \subsection, smaller headings unnumbered.
-  set heading(numbering: (..levels) => {
-    if levels.pos().len() <= 2 {
-      numbering("1.1", ..levels)
-    }
-  })
+  // Sections unnumbered, like \section* and \subsection*.
   show heading: set text(weight: "bold")
   show heading: set block(above: 1.8em, below: 1em)
   show heading.where(level: 1): set text(size: 14.4pt)
@@ -42,15 +40,18 @@
 
   set list(indent: 1em, marker: ([•], [--]))
   set enum(indent: 1em)
-  show list: set block(above: 0.9em, below: 0.9em)
-  show enum: set block(above: 0.9em, below: 0.9em)
+  // Lists here are short, so a list stays on one page: no lone item at the top.
+  show list: set block(above: 0.9em, below: 0.9em, breakable: false)
+  show enum: set block(above: 0.9em, below: 0.9em, breakable: false)
 
   // Code in Computer Modern typewriter, blocks indented like verbatim.
   // Typst shrinks raw text to 0.8em, 1.25em brings it back to the body size, like \texttt.
   show raw: set text(font: ("New Computer Modern Mono", "DejaVu Sans Mono"), size: 1.25em)
   show raw.where(block: true): set text(size: 0.9em)
+  // A code block is never split between pages.
   show raw.where(block: true): it => block(
     width: 100%,
+    breakable: false,
     above: 1em,
     below: 1em,
     inset: (left: 1.5em),
@@ -64,7 +65,9 @@
   show table: set par(justify: false, first-line-indent: 0em)
   show table.cell.where(y: 0): strong
   show table: it => block(stroke: (top: 0.8pt, bottom: 0.8pt), it)
-  show figure: set block(above: 1.2em, below: 1.2em)
+  // A long table may continue on the next page, with its header repeated,
+  // instead of leaving half a page empty.
+  show figure: set block(above: 1.2em, below: 1.2em, breakable: true)
 
   show link: set text(fill: rgb("#1f3b8f"))
 
