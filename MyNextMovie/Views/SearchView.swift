@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 /// How long to wait after the last keystroke before searching.
@@ -10,6 +11,8 @@ private let searchInputKeySeparator = "|"
 struct SearchView: View {
     @State private var viewModel: SearchViewModel
     private let loadDetails: MovieDetailsLoader
+
+    @Environment(\.modelContext) private var modelContext
 
     init(viewModel: SearchViewModel, loadDetails: @escaping MovieDetailsLoader) {
         _viewModel = State(initialValue: viewModel)
@@ -24,6 +27,7 @@ struct SearchView: View {
             }
             .navigationTitle("Search")
             .searchable(text: $viewModel.query, prompt: "Title or keyword")
+            .onSubmit(of: .search) { recordCurrentSearch() }
             .navigationDestination(for: Movie.self) { movie in movieDetail(movie) }
             .task(id: searchInputKey(viewModel.query, viewModel.selectedGenreId)) {
                 await searchAfterPause()
@@ -43,11 +47,7 @@ struct SearchView: View {
     private var content: some View {
         switch viewModel.state {
         case .idle:
-            ContentUnavailableView(
-                "Find a movie",
-                systemImage: symbolNameSearch,
-                description: Text("Search by title or keyword, or pick a genre.")
-            )
+            SearchStartView(selectQuery: selectRecentSearch)
         case .loading:
             ProgressView()
         case .loaded:
@@ -57,6 +57,19 @@ struct SearchView: View {
                 Task { await viewModel.search() }
             }
         }
+    }
+
+    /// Runs when the user presses Search on the keyboard. Recording every keystroke
+    /// would fill the history with "m", "ma", "mat".
+    private func recordCurrentSearch() {
+        recordSearch(modelContext, query: viewModel.query, now: Date.now)
+    }
+
+    /// Puts a recent search into the search field, which starts the search,
+    /// and moves it to the top of the history.
+    private func selectRecentSearch(_ query: String) {
+        viewModel.query = query
+        recordSearch(modelContext, query: query, now: Date.now)
     }
 
     /// Waits until the user stops typing. Every keystroke cancels the previous wait.
@@ -103,6 +116,70 @@ private struct GenreFilter: View {
             GenreChip(genreId: genreId, isSelected: genreId == selectedGenreId)
         }
         .buttonStyle(.plain)
+    }
+}
+
+/// What the tab shows before a search: recent searches, or a hint when there are none.
+private struct SearchStartView: View {
+    let selectQuery: (String) -> Void
+
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: \SearchHistoryEntry.searchedAt, order: .reverse)
+    private var searchHistory: [SearchHistoryEntry]
+
+    @ViewBuilder
+    var body: some View {
+        if searchHistory.isEmpty {
+            ContentUnavailableView(
+                "Find a movie",
+                systemImage: symbolNameSearch,
+                description: Text("Search by title or keyword, or pick a genre.")
+            )
+        } else {
+            recentSearchList
+        }
+    }
+
+    private var recentSearchList: some View {
+        List {
+            Section {
+                recentSearchRows
+            } header: {
+                recentSearchesHeader
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    private var recentSearchRows: some View {
+        ForEach(searchHistory.prefix(maxSearchHistoryCount)) { entry in
+            RecentSearchRow(query: entry.query, selectQuery: selectQuery)
+        }
+    }
+
+    private var recentSearchesHeader: some View {
+        HStack {
+            Text("Recent Searches")
+            Spacer()
+            Button("Clear") {
+                clearSearchHistory(modelContext)
+            }
+        }
+    }
+}
+
+/// One recent search. Tapping it searches for it again.
+private struct RecentSearchRow: View {
+    let query: String
+    let selectQuery: (String) -> Void
+
+    var body: some View {
+        Button {
+            selectQuery(query)
+        } label: {
+            Label(query, systemImage: symbolNameRecentSearch)
+                .foregroundStyle(.primary)
+        }
     }
 }
 
@@ -164,4 +241,5 @@ private struct SearchResultRow: View {
         viewModel: SearchViewModel(searchMovies: searchTMDBMovies),
         loadDetails: fetchMovieDetails
     )
+    .modelContainer(for: storedModelTypes, inMemory: true)
 }

@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 private let gridMinimumColumnWidth: CGFloat = 150
@@ -79,7 +80,8 @@ private func makePlaceholderMovies() -> [Movie] {
     return placeholderMovies
 }
 
-private struct MovieGrid: View {
+/// Movies in a grid under a title. Tapping a movie opens its details.
+struct MovieGrid: View {
     let title: String
     let movies: [Movie]
 
@@ -125,4 +127,5 @@ private struct MovieGridItem: View {
         viewModel: MovieListViewModel(loadMovies: fetchPopularMovies),
         loadDetails: fetchMovieDetails
     )
+    .modelContainer(for: storedModelTypes, inMemory: true)
 }

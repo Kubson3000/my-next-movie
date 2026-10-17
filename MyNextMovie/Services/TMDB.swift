@@ -1,4 +1,5 @@
 import Foundation
+import SwiftData
 
 // Parts of TMDB API addresses.
 // See https://developer.themoviedb.org/reference/intro/getting-started
@@ -19,6 +20,11 @@ private let parameterNameAppendToResponse = "append_to_response"
 /// Parts that the details request adds to the response, so one request gets them all.
 private let movieDetailsAppendedParts =
     "credits,videos,release_dates,watch/providers,recommendations"
+
+// Keys of the TMDB responses in the cache.
+private let popularMoviesCacheKey = "popular"
+/// The movie id goes after it: "movie/603".
+private let movieDetailsCacheKeyPrefix = "movie/"
 
 let httpStatusOK = 200
 let httpStatusUnauthorized = 401
@@ -107,6 +113,16 @@ func fetchPopularMovies() async throws -> [Movie] {
     return try decodeTMDBMovies(data)
 }
 
+/// Like `fetchPopularMovies`, but stores the response in the cache,
+/// and shows the stored one when the request fails, e.g. without internet.
+func loadPopularMovies(cache: ModelContext) async throws -> [Movie] {
+    let apiKey = try requireTMDBAPIKey()
+    let data = try await fetchWithCacheFallback(cache, key: popularMoviesCacheKey) {
+        try await fetchTMDBData(tmdbPopularURL(apiKey: apiKey))
+    }
+    return try decodeTMDBMovies(data)
+}
+
 /// Movies from TMDB that match the text and the genre. Has the type `MovieSearch`.
 /// `/search/movie` cannot filter by genre, so the found movies are filtered here.
 func searchTMDBMovies(query: String, genreId: Int) async throws -> [Movie] {
@@ -122,6 +138,17 @@ func searchTMDBMovies(query: String, genreId: Int) async throws -> [Movie] {
 func fetchMovieDetails(movieId: Int) async throws -> MovieDetails {
     let apiKey = try requireTMDBAPIKey()
     let data = try await fetchTMDBData(tmdbMovieDetailsURL(movieId: movieId, apiKey: apiKey))
+    return try decodeTMDBMovieDetails(data)
+}
+
+/// Like `fetchMovieDetails`, but stores the response in the cache,
+/// and shows the stored one when the request fails, e.g. without internet.
+func loadTMDBMovieDetails(movieId: Int, cache: ModelContext) async throws -> MovieDetails {
+    let apiKey = try requireTMDBAPIKey()
+    let cacheKey = movieDetailsCacheKeyPrefix + String(movieId)
+    let data = try await fetchWithCacheFallback(cache, key: cacheKey) {
+        try await fetchTMDBData(tmdbMovieDetailsURL(movieId: movieId, apiKey: apiKey))
+    }
     return try decodeTMDBMovieDetails(data)
 }
 
