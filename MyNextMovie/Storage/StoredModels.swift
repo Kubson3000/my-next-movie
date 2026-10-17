@@ -4,6 +4,7 @@ import SwiftData
 /// Every model the app keeps in its SwiftData database.
 let storedModelTypes: [any PersistentModel.Type] = [
     SavedMovie.self,
+    RemovedSavedMovie.self,
     SearchHistoryEntry.self,
     CachedResponse.self,
 ]
@@ -20,10 +21,10 @@ final class SavedMovie {
     var voteAverage: Double
     var genreIds: [Int]
     var savedAt: Date
-    /// Whether the Supabase account has the movie already. Always false until lab 5.
+    /// Whether the Supabase account has the movie already.
     var isInCloud: Bool = false
 
-    init(movie: Movie, savedAt: Date) {
+    init(movie: Movie, savedAt: Date, isInCloud: Bool) {
         movieId = movie.id
         title = movie.title
         overview = movie.overview
@@ -32,6 +33,19 @@ final class SavedMovie {
         voteAverage = movie.voteAverage
         genreIds = movie.genreIds
         self.savedAt = savedAt
+        self.isInCloud = isInCloud
+    }
+}
+
+/// A mark that the movie was removed on the device but not from the account yet.
+/// The next sync removes the movie from the account, then the mark.
+/// Without it, a movie removed offline would come back from the account.
+@Model
+final class RemovedSavedMovie {
+    @Attribute(.unique) var movieId: Int
+
+    init(movieId: Int) {
+        self.movieId = movieId
     }
 }
 

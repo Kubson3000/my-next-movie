@@ -43,6 +43,45 @@ struct SavedMovieTests {
 
         #expect(moviesFromSaved(savedMovies) == [matrix])
     }
+
+    @Test func removingMovieTheAccountHasLeavesAMark() throws {
+        let container = try makeTestContainer()
+        let context = container.mainContext
+        let matrix = testMovies[0]
+        context.insert(SavedMovie(movie: matrix, savedAt: minute(1), isInCloud: true))
+
+        toggleSavedMovie(context, matrix, now: minute(2))
+
+        #expect(!isMovieSaved(context, movieId: matrix.id))
+        #expect(fetchRemovalMarks(context, movieId: matrix.id).count == 1)
+    }
+
+    @Test func removingMovieOnlyOnDeviceLeavesNoMark() throws {
+        let container = try makeTestContainer()
+        let context = container.mainContext
+        let matrix = testMovies[0]
+
+        toggleSavedMovie(context, matrix, now: minute(1))
+        toggleSavedMovie(context, matrix, now: minute(2))
+
+        #expect(!isMovieSaved(context, movieId: matrix.id))
+        #expect(fetchRemovalMarks(context).isEmpty)
+    }
+
+    @Test func clearRemovesMoviesAndMarks() throws {
+        let container = try makeTestContainer()
+        let context = container.mainContext
+        let matrix = testMovies[0]
+        let inception = testMovies[1]
+        context.insert(SavedMovie(movie: matrix, savedAt: minute(1), isInCloud: true))
+        toggleSavedMovie(context, inception, now: minute(2))
+        toggleSavedMovie(context, matrix, now: minute(3))
+
+        clearSavedMovies(context)
+
+        #expect(try context.fetch(FetchDescriptor<SavedMovie>()).isEmpty)
+        #expect(try context.fetch(FetchDescriptor<RemovedSavedMovie>()).isEmpty)
+    }
 }
 
 @MainActor
@@ -162,7 +201,7 @@ struct ResponseCacheTests {
 }
 
 /// `firstDate` plus the minutes.
-private func minute(_ minutes: Int) -> Date {
+func minute(_ minutes: Int) -> Date {
     return firstDate.addingTimeInterval(secondsPerMinute * TimeInterval(minutes))
 }
 

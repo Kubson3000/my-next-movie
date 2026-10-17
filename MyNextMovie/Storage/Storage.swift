@@ -21,13 +21,56 @@ func isMovieSaved(_ context: ModelContext, movieId: Int) -> Bool {
 }
 
 /// Saves the movie, or removes it when it is saved already.
+/// Removing a movie the account has leaves a `RemovedSavedMovie` mark, so the next sync
+/// removes it from the account too. A movie the account does not have yet leaves no mark.
+/// Saving a movie again keeps a mark left earlier: the sync then removes the old row
+/// from the account and sends the movie again with the new date.
 func toggleSavedMovie(_ context: ModelContext, _ movie: Movie, now: Date) {
     let savedCopies = fetchSavedMovies(context, movieId: movie.id)
     if savedCopies.isEmpty {
-        context.insert(SavedMovie(movie: movie, savedAt: now))
+        context.insert(SavedMovie(movie: movie, savedAt: now, isInCloud: false))
     }
     for savedCopy in savedCopies {
+        if savedCopy.isInCloud {
+            markMovieRemoved(context, movieId: savedCopy.movieId)
+        }
         context.delete(savedCopy)
+    }
+}
+
+/// For signing out: removes every saved movie and every removal mark from the device.
+/// The account keeps its movies. Removes them one by one, because
+/// `context.delete(model:)` skips objects that are not saved to disk yet.
+func clearSavedMovies(_ context: ModelContext) {
+    for savedMovie in fetchAllSavedMovies(context) {
+        context.delete(savedMovie)
+    }
+    for removalMark in fetchRemovalMarks(context) {
+        context.delete(removalMark)
+    }
+}
+
+func fetchAllSavedMovies(_ context: ModelContext) -> [SavedMovie] {
+    return (try? context.fetch(FetchDescriptor<SavedMovie>())) ?? []
+}
+
+/// Every `RemovedSavedMovie` mark.
+func fetchRemovalMarks(_ context: ModelContext) -> [RemovedSavedMovie] {
+    return (try? context.fetch(FetchDescriptor<RemovedSavedMovie>())) ?? []
+}
+
+/// The mark of the movie: an empty array or one mark.
+func fetchRemovalMarks(_ context: ModelContext, movieId: Int) -> [RemovedSavedMovie] {
+    let descriptor = FetchDescriptor<RemovedSavedMovie>(
+        predicate: #Predicate { removalMark in removalMark.movieId == movieId }
+    )
+    return (try? context.fetch(descriptor)) ?? []
+}
+
+/// Leaves a mark that the movie was removed on the device, unless it has one already.
+func markMovieRemoved(_ context: ModelContext, movieId: Int) {
+    if fetchRemovalMarks(context, movieId: movieId).isEmpty {
+        context.insert(RemovedSavedMovie(movieId: movieId))
     }
 }
 
