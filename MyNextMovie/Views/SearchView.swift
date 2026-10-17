@@ -9,9 +9,11 @@ private let searchInputKeySeparator = "|"
 
 struct SearchView: View {
     @State private var viewModel: SearchViewModel
+    private let loadDetails: MovieDetailsLoader
 
-    init(viewModel: SearchViewModel) {
+    init(viewModel: SearchViewModel, loadDetails: @escaping MovieDetailsLoader) {
         _viewModel = State(initialValue: viewModel)
+        self.loadDetails = loadDetails
     }
 
     var body: some View {
@@ -22,11 +24,15 @@ struct SearchView: View {
             }
             .navigationTitle("Search")
             .searchable(text: $viewModel.query, prompt: "Title or keyword")
-            .navigationDestination(for: Movie.self) { movie in MovieDetailView(movie: movie) }
+            .navigationDestination(for: Movie.self) { movie in movieDetail(movie) }
             .task(id: searchInputKey(viewModel.query, viewModel.selectedGenreId)) {
                 await searchAfterPause()
             }
         }
+    }
+
+    private func movieDetail(_ movie: Movie) -> some View {
+        MovieDetailView(movie: movie, loadDetails: loadDetails)
     }
 
     private var genreFilter: some View {
@@ -154,5 +160,8 @@ private struct SearchResultRow: View {
 }
 
 #Preview {
-    SearchView(viewModel: SearchViewModel(searchMovies: searchSampleMovies))
+    SearchView(
+        viewModel: SearchViewModel(searchMovies: searchTMDBMovies),
+        loadDetails: fetchMovieDetails
+    )
 }

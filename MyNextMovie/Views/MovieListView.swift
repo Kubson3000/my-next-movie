@@ -2,20 +2,32 @@ import SwiftUI
 
 private let gridMinimumColumnWidth: CGFloat = 150
 
+/// Number of gray cards in the grid while the real movies load.
+private let placeholderMovieCount = 6
+
+/// `.redacted` draws text as a gray bar, so only the length of the title matters.
+private let placeholderMovieTitle = "Movie title"
+
 struct MovieListView: View {
     @State private var viewModel: MovieListViewModel
+    private let loadDetails: MovieDetailsLoader
 
-    init(viewModel: MovieListViewModel) {
+    init(viewModel: MovieListViewModel, loadDetails: @escaping MovieDetailsLoader) {
         _viewModel = State(initialValue: viewModel)
+        self.loadDetails = loadDetails
     }
 
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("My Next Movie")
-                .navigationDestination(for: Movie.self) { movie in MovieDetailView(movie: movie) }
+                .navigationDestination(for: Movie.self) { movie in movieDetail(movie) }
         }
         .task { await viewModel.loadIfNeeded() }
+    }
+
+    private func movieDetail(_ movie: Movie) -> some View {
+        MovieDetailView(movie: movie, loadDetails: loadDetails)
     }
 
     @ViewBuilder
@@ -32,9 +44,9 @@ struct MovieListView: View {
         }
     }
 
-    /// Sample movies drawn as gray shapes while the real ones load.
+    /// Empty movies drawn as gray cards while the real ones load.
     private var loadingGrid: some View {
-        MovieGrid(title: "Popular", movies: sampleMovies)
+        MovieGrid(title: "Popular", movies: makePlaceholderMovies())
             .redacted(reason: .placeholder)
             .allowsHitTesting(false)
     }
@@ -47,6 +59,24 @@ struct MovieListView: View {
             MovieGrid(title: "Popular", movies: viewModel.movies)
         }
     }
+}
+
+/// `placeholderMovieCount` movies with ids 1, 2, 3... and nothing but a title.
+private func makePlaceholderMovies() -> [Movie] {
+    var placeholderMovies: [Movie] = []
+    for movieId in 1...placeholderMovieCount {
+        let placeholderMovie = Movie(
+            id: movieId,
+            title: placeholderMovieTitle,
+            overview: "",
+            releaseDate: "",
+            posterPath: nil,
+            voteAverage: 0,
+            genreIds: []
+        )
+        placeholderMovies.append(placeholderMovie)
+    }
+    return placeholderMovies
 }
 
 private struct MovieGrid: View {
@@ -91,5 +121,8 @@ private struct MovieGridItem: View {
 }
 
 #Preview {
-    MovieListView(viewModel: MovieListViewModel(loadMovies: loadSampleMovies))
+    MovieListView(
+        viewModel: MovieListViewModel(loadMovies: fetchPopularMovies),
+        loadDetails: fetchMovieDetails
+    )
 }

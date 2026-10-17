@@ -27,6 +27,10 @@ final class SearchViewModel {
             movies = try await searchMovies(trimmedQuery, selectedGenreId)
             state = .loaded
         } catch {
+            if Task.isCancelled {
+                // The user typed again. The newer search sets the state, so no error flashes.
+                return
+            }
             errorMessage = error.localizedDescription
             state = .failed
         }
