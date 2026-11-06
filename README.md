@@ -74,7 +74,7 @@ supabaseAnonKey()
 
 ## Wymagania
 
-- Mac z Xcode 26 albo nowszym
+- Mac z Xcode 27 albo nowszym
 - konto TMDB i klucz API, od lab 3
 - konto Supabase i Supabase CLI, od lab 5
 - konto GitHub nie jest potrzebne

@@ -2,7 +2,7 @@
 // Target settings live in App.xcconfig and Tests.xcconfig.
 
 SDKROOT = iphoneos
-IPHONEOS_DEPLOYMENT_TARGET = 18.0
+IPHONEOS_DEPLOYMENT_TARGET = 27.0
 TARGETED_DEVICE_FAMILY = 1,2
 
 SWIFT_VERSION = 6.0
