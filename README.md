@@ -23,6 +23,7 @@ Zadania na każde zajęcia są w folderze `docs/`:
 - Lab 3: dane z TMDB ([PDF](docs/lab3.pdf), [Markdown](docs/lab3.md))
 - Lab 4: dane na urządzeniu, SwiftData ([PDF](docs/lab4.pdf), [Markdown](docs/lab4.md))
 - Lab 5: konto i synchronizacja, Supabase ([PDF](docs/lab5.pdf), [Markdown](docs/lab5.md))
+- Lab 6: kina we Wrocławiu, MapKit ([PDF](docs/lab6.pdf), [Markdown](docs/lab6.md))
 
 PDF-y można też pobrać z [Releases, Instrukcje do laboratoriów](../../releases/tag/labs-pdf). Buduje je polecenie `scripts/build-docs.sh` (wymaga [pandoc](https://pandoc.org) i [Typst](https://typst.app)).
 
