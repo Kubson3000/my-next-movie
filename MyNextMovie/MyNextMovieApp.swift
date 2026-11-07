@@ -106,6 +106,7 @@ private struct AppTabs: View {
             Tab("Saved", systemImage: symbolNameSaved) {
                 SavedMoviesView(loadDetails: loadDetails)
             }
+            Tab("Cinemas", systemImage: symbolNameCinema) { cinemaMap }
             Tab("Account", systemImage: symbolNameAccount) {
                 AccountView(viewModel: account)
             }
@@ -127,6 +128,16 @@ private struct AppTabs: View {
             viewModel: SearchViewModel(searchMovies: searchTMDBMovies),
             loadDetails: loadDetails
         )
+    }
+
+    private var cinemaMap: some View {
+        let viewModel = CinemaMapViewModel(
+            cinemas: wroclawCinemas,
+            findUserLocation: findUserLocation,
+            lastKnownLocation: lastKnownUserLocation)
+        return CinemaMapView(
+            viewModel: viewModel,
+            findRoute: findMapKitRoute, placement: .tab)
     }
 
     /// Saved movies not sent to the account yet, plus removals not sent yet.

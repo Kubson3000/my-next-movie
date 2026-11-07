@@ -94,7 +94,12 @@ private let primeVideo = WatchProvider(
         Video(key: "FVI84Dfx2-I", site: "YouTube", type: "Trailer", official: true)
     ]),
     releaseDates: ReleaseDateList(results: [
-        CountryReleaseDates(countryCode: "PL", releaseDates: [ReleaseDate(certification: "16")])
+        CountryReleaseDates(
+            countryCode: "PL",
+            releaseDates: [
+                ReleaseDate(certification: "16", releaseDate: "1999-08-13T00:00:00.000Z", type: 3)
+            ]
+        )
     ]),
     watchProviders: WatchProviderList(results: [
         "PL": CountryWatchProviders(

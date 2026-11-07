@@ -11,6 +11,7 @@ private let posterShadowOffset: CGFloat = 10
 struct MovieDetailView: View {
     let movie: Movie
     @State private var viewModel: MovieDetailViewModel
+    @State private var isShowingCinemas = false
 
     init(movie: Movie, loadDetails: @escaping MovieDetailsLoader) {
         self.movie = movie
@@ -24,6 +25,7 @@ struct MovieDetailView: View {
             VStack(alignment: .leading, spacing: spacingExtraLarge) {
                 MovieBackdrop(movie: movie)
                 MovieInfo(movie: movie, details: viewModel.details).padding(.horizontal)
+                nowInCinemas.padding(.horizontal)
                 detailsContent.padding(.horizontal)
             }
             .padding(.bottom, spacingHuge)
@@ -32,6 +34,27 @@ struct MovieDetailView: View {
         .ignoresSafeArea(edges: .top)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { SaveMovieButton(movie: movie) }
+        .sheet(isPresented: $isShowingCinemas) { cinemaMap }
+    }
+
+    /// TMDB has no showtimes, so the button shows for a few weeks after the premiere
+    /// in the phone's country.
+    @ViewBuilder
+    private var nowInCinemas: some View {
+        if isInCinemas(viewModel.details, regionCode: watchRegionCode, today: Date.now) {
+            NowInCinemasButton { isShowingCinemas = true }
+        }
+    }
+
+    /// Built like the Cinemas tab, with a Done button.
+    private var cinemaMap: some View {
+        let cinemaMapViewModel = CinemaMapViewModel(
+            cinemas: wroclawCinemas,
+            findUserLocation: findUserLocation,
+            lastKnownLocation: lastKnownUserLocation)
+        return CinemaMapView(
+            viewModel: cinemaMapViewModel,
+            findRoute: findMapKitRoute, placement: .sheet)
     }
 
     /// The movie from the list stays on screen while the details load and when they fail.
@@ -48,6 +71,31 @@ struct MovieDetailView: View {
                 Task { await viewModel.load() }
             }
         }
+    }
+}
+
+/// Opens the cinemas on a map, with a line under it on where to find showtimes.
+private struct NowInCinemasButton: View {
+    let showCinemas: () -> Void
+
+    var body: some View {
+        VStack(spacing: spacingSmall) {
+            button
+            Text("See the cinemas near you. Showtimes are on each cinema's website.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    private var button: some View {
+        Button(action: showCinemas) {
+            Label("Now in Cinemas", systemImage: symbolNameCinema)
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.bordered)
+        .controlSize(.large)
     }
 }
 
