@@ -33,8 +33,19 @@ private let matrixDetailsJSON = """
       },
       "release_dates": {
         "results": [
-          {"iso_3166_1": "PL", "release_dates": [{"certification": ""}, {"certification": "16"}]},
-          {"iso_3166_1": "US", "release_dates": [{"certification": "R"}]}
+          {
+            "iso_3166_1": "PL",
+            "release_dates": [
+              {"certification": "", "release_date": "1999-06-11T00:00:00.000Z", "type": 1},
+              {"certification": "16", "release_date": "1999-08-13T00:00:00.000Z", "type": 3}
+            ]
+          },
+          {
+            "iso_3166_1": "US",
+            "release_dates": [
+              {"certification": "R", "release_date": "1999-03-31T00:00:00.000Z", "type": 3}
+            ]
+          }
         ]
       },
       "watch/providers": {
@@ -116,6 +127,14 @@ struct MovieDetailsDecodingTests {
         let details = try decodeMatrixDetails()
 
         #expect(details.releaseDates.results.first?.countryCode == polandRegionCode)
+    }
+
+    @Test func decodesDayAndTypeOfRelease() throws {
+        let details = try decodeMatrixDetails()
+
+        let polishRelease = try #require(details.releaseDates.results.first?.releaseDates.last)
+        #expect(polishRelease.releaseDate == "1999-08-13T00:00:00.000Z")
+        #expect(polishRelease.type == releaseTypeTheatrical)
     }
 
     @Test func decodesRecommendationsAsMovies() throws {
@@ -234,6 +253,74 @@ struct MovieDetailsTests {
     }
 }
 
+/// 6 November 2026, 00:00 UTC. The tests count days from it.
+private let testToday = Date(timeIntervalSince1970: 1_793_923_200)
+
+private let releaseTypeDigital = 4
+
+@MainActor
+struct InCinemasTests {
+    @Test func recentCinemaPremiereIsInCinemas() {
+        let details = detailsReleased("2026-10-17T00:00:00.000Z", type: releaseTypeTheatrical)
+
+        #expect(isInCinemas(details, regionCode: polandRegionCode, today: testToday))
+        #expect(daysSinceReleaseDay("2026-10-17T00:00:00.000Z", today: testToday) == 20)
+    }
+
+    @Test func limitedReleaseCountsToo() {
+        let details = detailsReleased(
+            "2026-11-06T00:00:00.000Z", type: releaseTypeTheatricalLimited)
+
+        #expect(isInCinemas(details, regionCode: polandRegionCode, today: testToday))
+        #expect(daysSinceReleaseDay("2026-11-06T00:00:00.000Z", today: testToday) == 0)
+    }
+
+    @Test func oldPremiereIsNotInCinemas() {
+        // 25 September is 42 days before, the last day of a typical run. 24 September is 43.
+        let lastDay = detailsReleased("2026-09-25T00:00:00.000Z", type: releaseTypeTheatrical)
+        let dayAfterRun = detailsReleased("2026-09-24T00:00:00.000Z", type: releaseTypeTheatrical)
+
+        #expect(isInCinemas(lastDay, regionCode: polandRegionCode, today: testToday))
+        #expect(!isInCinemas(dayAfterRun, regionCode: polandRegionCode, today: testToday))
+    }
+
+    @Test func futurePremiereIsNotInCinemasYet() {
+        let details = detailsReleased("2026-11-07T00:00:00.000Z", type: releaseTypeTheatrical)
+
+        #expect(!isInCinemas(details, regionCode: polandRegionCode, today: testToday))
+        #expect(daysSinceReleaseDay("2026-11-07T00:00:00.000Z", today: testToday) == -1)
+    }
+
+    @Test func digitalReleaseIsNotCinema() {
+        let details = detailsReleased("2026-10-30T00:00:00.000Z", type: releaseTypeDigital)
+
+        #expect(!isInCinemas(details, regionCode: polandRegionCode, today: testToday))
+    }
+
+    @Test func premiereInAnotherCountryDoesNotCount() {
+        let details = detailsReleased("2026-10-17T00:00:00.000Z", type: releaseTypeTheatrical)
+
+        #expect(!isInCinemas(details, regionCode: germanyRegionCode, today: testToday))
+    }
+
+    @Test func unreadableDateIsNotInCinemas() {
+        let details = detailsReleased("soon", type: releaseTypeTheatrical)
+
+        #expect(!isInCinemas(details, regionCode: polandRegionCode, today: testToday))
+        #expect(daysSinceReleaseDay("", today: testToday) == -1)
+        #expect(daysSinceReleaseDay("2026-13-45", today: testToday) == -1)
+    }
+}
+
+/// Details with one release in Poland.
+@MainActor
+private func detailsReleased(_ releaseDate: String, type: Int) -> MovieDetails {
+    let release = ReleaseDate(certification: "", releaseDate: releaseDate, type: type)
+    let polishReleases = CountryReleaseDates(
+        countryCode: polandRegionCode, releaseDates: [release])
+    return makeMovieDetails(releaseDates: [polishReleases])
+}
+
 @MainActor
 private func decodeMatrixDetails() throws -> MovieDetails {
     return try decodeTMDBMovieDetails(Data(matrixDetailsJSON.utf8))
@@ -243,7 +330,8 @@ private func decodeMatrixDetails() throws -> MovieDetails {
 func makeMovieDetails(
     runtime: Int? = nil,
     crew: [CrewMember] = [],
-    videos: [Video] = []
+    videos: [Video] = [],
+    releaseDates: [CountryReleaseDates] = []
 ) -> MovieDetails {
     return MovieDetails(
         id: 1,
@@ -251,7 +339,7 @@ func makeMovieDetails(
         runtime: runtime,
         credits: Credits(cast: [], crew: crew),
         videos: VideoList(results: videos),
-        releaseDates: ReleaseDateList(results: []),
+        releaseDates: ReleaseDateList(results: releaseDates),
         watchProviders: WatchProviderList(results: [:]),
         recommendations: TMDBMoviePage(results: [])
     )

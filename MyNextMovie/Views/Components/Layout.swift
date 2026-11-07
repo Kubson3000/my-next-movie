@@ -22,3 +22,14 @@ let symbolNameInSync = "checkmark.icloud"
 let symbolNameSearch = "magnifyingglass"
 let symbolNameError = "exclamationmark.triangle"
 let symbolNameRatingStar = "star.fill"
+
+// SF Symbols of the Cinemas tab and the cinema screen.
+let symbolNameCinema = "popcorn.fill"
+let symbolNameLocationOff = "location.slash"
+let symbolNameDirections =
+    "arrow.triangle.turn.up.right.diamond.fill"
+let symbolNamePhone = "phone.fill"
+let symbolNameWebsite = "safari"
+let symbolNameWalking = "figure.walk"
+let symbolNameDriving = "car.fill"
+let symbolNameDetails = "info.circle"

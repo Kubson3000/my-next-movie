@@ -91,7 +91,22 @@ nonisolated struct CountryReleaseDates: Decodable {
 
 nonisolated struct ReleaseDate: Decodable {
     let certification: String  // age rating, e.g. "16", empty when unknown
+    let releaseDate: String  // "2026-10-17T00:00:00.000Z"
+    let type: Int  // 2 and 3 are a cinema premiere, see `releaseTypeTheatrical`
 }
+
+// Release types in TMDB. The others are premiere, digital, physical and TV.
+let releaseTypeTheatricalLimited = 2
+let releaseTypeTheatrical = 3
+
+/// How long a movie usually stays in cinemas after the premiere.
+let typicalCinemaRunInDays = 42
+
+/// `daysSinceReleaseDay` for a date it cannot read or a date in the future.
+let unknownDaysSinceRelease = -1
+
+/// Number of characters of the day at the start of "2026-10-17T00:00:00.000Z".
+private let releaseDayLength = 10
 
 nonisolated struct WatchProviderList: Decodable {
     let results: [String: CountryWatchProviders]  // the key is a country code, e.g. "PL"
@@ -255,4 +270,52 @@ func logoURL(_ provider: WatchProvider) -> URL? {
         return nil
     }
     return URL(string: tmdbLogoBaseURL + logoPath)
+}
+
+/// Whether the movie had a cinema premiere in the country at most `typicalCinemaRunInDays`
+/// days before `today`. TMDB has no showtimes, so this is a guess that it still runs.
+func isInCinemas(_ details: MovieDetails, regionCode: String, today: Date) -> Bool {
+    for countryReleaseDates in details.releaseDates.results
+    where countryReleaseDates.countryCode == regionCode {
+        if hasRecentCinemaRelease(countryReleaseDates.releaseDates, today: today) {
+            return true
+        }
+    }
+    return false
+}
+
+private func hasRecentCinemaRelease(_ releaseDates: [ReleaseDate], today: Date) -> Bool {
+    for releaseDate in releaseDates where isCinemaRelease(releaseDate) {
+        let days = daysSinceReleaseDay(releaseDate.releaseDate, today: today)
+        if days != unknownDaysSinceRelease && days <= typicalCinemaRunInDays {
+            return true
+        }
+    }
+    return false
+}
+
+private func isCinemaRelease(_ releaseDate: ReleaseDate) -> Bool {
+    return releaseDate.type == releaseTypeTheatricalLimited
+        || releaseDate.type == releaseTypeTheatrical
+}
+
+/// Whole days from the release day to `today`: 0 on the day itself.
+/// `unknownDaysSinceRelease` for a date it cannot read or a date in the future.
+/// Both days are counted in UTC, the time zone of TMDB dates.
+func daysSinceReleaseDay(_ releaseDate: String, today: Date) -> Int {
+    let releaseDay = String(releaseDate.prefix(releaseDayLength))
+    let dayFormat = Date.ISO8601FormatStyle().year().month().day()
+    guard let releaseStart = try? dayFormat.parse(releaseDay) else {
+        return unknownDaysSinceRelease
+    }
+    var utcCalendar = Calendar(identifier: .gregorian)
+    utcCalendar.timeZone = .gmt
+    let days = utcCalendar.dateComponents(
+        [.day], from: releaseStart, to: utcCalendar.startOfDay(for: today)
+    ).day
+    let dayCount = days ?? unknownDaysSinceRelease
+    if dayCount < 0 {
+        return unknownDaysSinceRelease
+    }
+    return dayCount
 }
