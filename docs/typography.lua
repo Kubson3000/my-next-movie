@@ -2,6 +2,9 @@
 --
 -- 1. One-letter words (a, i, o, u, w, z) never end a line: the space after
 --    them becomes a non-breaking space, as in Polish printed books.
+--    The same for a number and its unit or counted word ("10 sekund", "42 dni"),
+--    a word and the number after it ("lab 5", "zadaniu 3", "typ 4"),
+--    and an abbreviation and the word after it ("np. Wrocław").
 -- 2. A paragraph ending with ":" stays on the same page as the list, table or
 --    code it introduces, so "Funkcje:" never ends a page on its own.
 -- 3. A table stays on one page, so a page never starts with a leftover row.
@@ -16,11 +19,57 @@ local function is_single_letter_word(text)
   return text:match("^[%(\u{201E}\u{201C}\"]?[aiouwzAIOUWZ]$") ~= nil
 end
 
+local words_before_number = {
+  lab = true, Lab = true, labie = true, labu = true,
+  zadanie = true, Zadanie = true, zadaniu = true, zadania = true,
+  typ = true, typu = true, typy = true,
+}
+
+local abbreviations = {
+  ["np."] = true, ["Np."] = true, ["tj."] = true, ["tzn."] = true, ["ok."] = true,
+}
+
+-- Units and counted words that stay with the number before them.
+local words_after_number = {}
+for _, word in ipairs({
+  "m", "km", "s", "min", "pt", "sekund", "sekundach", "sekundy", "minut",
+  "godzin", "dni", "dzień", "razy", "raz", "lat", "znaki", "znaków", "kin",
+  "kina", "punktów", "stycznia", "lutego", "marca", "kwietnia", "maja",
+  "czerwca", "lipca", "sierpnia", "września", "października", "listopada",
+  "grudnia",
+}) do
+  words_after_number[word] = true
+end
+
+local function is_number(text)
+  return text:match("^%d[%d.,]*$") ~= nil
+end
+
+local function starts_with_digit(text)
+  return text:match("^%d") ~= nil
+end
+
+local function keeps_next_word(current, following)
+  if current.t ~= "Str" then
+    return false
+  end
+  local text = current.text
+  if is_single_letter_word(text) or abbreviations[text] then
+    return true
+  end
+  if is_number(text) and following.t == "Str"
+    and words_after_number[following.text:gsub("[,.:;)]$", "")] then
+    return true
+  end
+  return words_before_number[text] and following.t == "Str" and starts_with_digit(following.text)
+end
+
 function Inlines(inlines)
-  for position = 1, #inlines - 1 do
+  for position = 1, #inlines - 2 do
     local current = inlines[position]
     local next_inline = inlines[position + 1]
-    if current.t == "Str" and next_inline.t == "Space" and is_single_letter_word(current.text) then
+    local following = inlines[position + 2]
+    if next_inline.t == "Space" and keeps_next_word(current, following) then
       inlines[position + 1] = pandoc.Str(nbsp)
     end
   end

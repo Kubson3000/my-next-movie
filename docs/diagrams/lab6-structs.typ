@@ -1,0 +1,30 @@
+#import "_style.typ": *
+#show: setup
+
+#diagram(
+  spacing: (40pt, 26pt),
+  ..boxes,
+  node((0, 0), name: <map>, uml("CinemaMapViewModel", stereotype: "class",
+    fields: ("cinemas: [Cinema]", "userLocation: UserLocation",
+      "selectedCinemaId: String", "isLocating: Bool"),
+    methods: ("locateUser()", "toggleCinema(_:)"))),
+  node((0.5, -1), name: <user>, uml("UserLocation",
+    fields: ("latitude: CLLocationDegrees", "longitude: CLLocationDegrees",
+      "isKnown: Bool"))),
+  node((1, 0), name: <detail>, uml("CinemaDetailViewModel", stereotype: "class",
+    fields: ("cinema: Cinema", "userLocation: UserLocation",
+      "travelMode: TravelMode", "routeState: LoadState", "route: CinemaRoute"),
+    methods: ("loadRoute()",))),
+  node((0, 1), name: <cinema>, uml("Cinema",
+    fields: ("id: String", "name: String", "address: String",
+      "phoneNumber: String", "website: String", "latitude: CLLocationDegrees",
+      "longitude: CLLocationDegrees", "distanceInMeters: CLLocationDistance"))),
+  node((1, 1), name: <route>, uml("CinemaRoute",
+    fields: ("line: MKPolyline", "distanceInMeters: CLLocationDistance",
+      "travelTime: TimeInterval"))),
+  edge(<map>, <user>, "->"),
+  edge(<detail>, <user>, "->"),
+  edge(<map>, <cinema>, "->", label: [0..\*], label-pos: 0.7, label-side: left),
+  edge(<detail>, <cinema>, "->"),
+  edge(<detail>, <route>, "->"),
+)
