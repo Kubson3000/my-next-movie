@@ -2,11 +2,11 @@
 
 Na tych zajęciach aplikacja dostaje zakładkę Cinemas: kina Wrocławia na mapie i na liście, najbliższe na górze. Kino ma swój ekran z trasą. Film, który jest teraz w kinach, dostaje przycisk "Now in Cinemas".
 
-Cały kod piszą Państwo sami. Nazwy plików, typów i funkcji proszę zachować, bo według nich sprawdzam prace.
+Poza trzema gotowymi plikami cały kod piszą Państwo sami. Nazwy plików, typów i funkcji proszę zachować, bo według nich sprawdzam prace.
 
 ## Zanim Państwo zaczną
 
-1. Gotowe pliki tego labu przychodzą z repozytorium przedmiotu: `git pull upstream main`. Przy pracy z ZIP-em proszę pobrać aktualny ZIP i skopiować z niego trzy pliki z listy „Gotowe” niżej.
+1. Gotowe pliki tego labu przychodzą z repozytorium przedmiotu: `git pull upstream main`, potem `git push`. Przy pracy z ZIP-em proszę pobrać aktualny ZIP i skopiować z niego trzy pliki z listy „Gotowe” niżej, do tych samych folderów.
 2. Lab 6 korzysta z kodu z lab 5: zakładka Cinemas trafia do AppTabs. Bez lab 5 proszę ją dodać we własnym TabView, obok Saved.
 3. Położenie w symulatorze: menu Features, Location, Custom Location, wpisać 51.0983 i 17.0368 (Wrocław Główny).
 4. Nowy plik: w Xcode prawy klik na folder w Project navigator, New File from Template, Swift File. Xcode sam dodaje go do aplikacji albo do testów, zależnie od folderu.
@@ -49,7 +49,7 @@ Typy z tego labu (diagram klas UML). Tylko view modele są klasami:
 
 ### Models/Cinema.swift
 
-Plik jest gotowy: struktury Cinema i UserLocation z diagramu i stała unknownDistance. W Cinema tylko distanceInMeters jest var, z wartością początkową unknownDistance, bo odległość znamy dopiero po znalezieniu położenia.
+Plik ma już struktury Cinema i UserLocation z diagramu i stałą unknownDistance. W Cinema tylko distanceInMeters jest var, z wartością początkową unknownDistance, bo odległość znamy dopiero po znalezieniu położenia.
 
 Proszę dopisać stałe:
 
@@ -80,7 +80,7 @@ I funkcje:
 
 ### Models/WroclawCinemas.swift
 
-Gotowy plik z danymi siedmiu kin z Apple Maps. Nic tu nie piszą Państwo.
+Gotowy plik z danymi siedmiu kin z Apple Maps. Tego pliku nie trzeba zmieniać.
 
 ### Models/MapRegion.swift
 
@@ -345,12 +345,12 @@ Zestaw InCinemasTests w pliku MovieDetailsTests.swift. Dzisiejszy dzień to w ni
 
 ### Przygotowanie
 
+- [ ] `git pull upstream main`: w projekcie są Cinema.swift, WroclawCinemas.swift i TestCinemas.swift.
 - [ ] Kod z lab 5 działa albo wiadomo, gdzie jest TabView.
 - [ ] Symulator ma położenie: Features, Location, Custom Location.
 
 ### Zadanie 1: kina
 
-- [ ] Gotowe pliki są w projekcie: Cinema.swift, WroclawCinemas.swift, TestCinemas.swift.
 - [ ] Cinema.swift: stałe i funkcje z tabeli.
 - [ ] MapRegion.swift: wroclawMapRegion, regionMoved, isInRegion.
 - [ ] Testy CinemaTests i WroclawCinemasTests.
