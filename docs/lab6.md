@@ -6,17 +6,24 @@ Cały kod piszą Państwo sami. Nazwy plików, typów i funkcji proszę zachowa�
 
 ## Zanim Państwo zaczną
 
-1. Lab 6 korzysta z kodu z lab 5: zakładka Cinemas trafia do AppTabs. Bez lab 5 proszę ją dodać we własnym TabView, obok Saved.
-2. Położenie w symulatorze: menu Features, Location, Custom Location, wpisać 51.0983 i 17.0368 (Wrocław Główny).
-3. Nowy plik: w Xcode prawy klik na folder w Project navigator, New File from Template, Swift File. Xcode sam dodaje go do aplikacji albo do testów, zależnie od folderu.
+1. Gotowe pliki tego labu przychodzą z repozytorium przedmiotu: `git pull upstream main`. Przy pracy z ZIP-em proszę pobrać aktualny ZIP i skopiować z niego trzy pliki z listy „Gotowe” niżej.
+2. Lab 6 korzysta z kodu z lab 5: zakładka Cinemas trafia do AppTabs. Bez lab 5 proszę ją dodać we własnym TabView, obok Saved.
+3. Położenie w symulatorze: menu Features, Location, Custom Location, wpisać 51.0983 i 17.0368 (Wrocław Główny).
+4. Nowy plik: w Xcode prawy klik na folder w Project navigator, New File from Template, Swift File. Xcode sam dodaje go do aplikacji albo do testów, zależnie od folderu.
 
 ## Pliki
+
+Gotowe, z repozytorium przedmiotu:
+
+```
+MyNextMovie/Models/Cinema.swift               struktury Cinema i UserLocation
+MyNextMovie/Models/WroclawCinemas.swift       dane kin
+MyNextMovieTests/TestCinemas.swift            kina do testów
+```
 
 Nowe:
 
 ```
-MyNextMovie/Models/Cinema.swift
-MyNextMovie/Models/WroclawCinemas.swift        gotowy, z docs/files
 MyNextMovie/Models/MapRegion.swift
 MyNextMovie/Services/Location.swift
 MyNextMovie/Services/Maps.swift
@@ -24,12 +31,11 @@ MyNextMovie/ViewModels/CinemaMapViewModel.swift
 MyNextMovie/ViewModels/CinemaDetailViewModel.swift
 MyNextMovie/Views/CinemaMapView.swift
 MyNextMovie/Views/CinemaDetailView.swift
-MyNextMovieTests/TestCinemas.swift             gotowy, z docs/files
 MyNextMovieTests/CinemaTests.swift
 MyNextMovieTests/CinemaMapViewModelTests.swift
 ```
 
-Do zmiany: Config/App.xcconfig, MyNextMovieApp.swift, Layout.swift, MovieDetails.swift, MovieDetailView.swift, TestMovies.swift, MovieDetailsTests.swift.
+Do zmiany: Cinema.swift (dopisać stałe i funkcje), Config/App.xcconfig, MyNextMovieApp.swift, Layout.swift, MovieDetails.swift, MovieDetailView.swift, TestMovies.swift, MovieDetailsTests.swift.
 
 ## Jak to działa
 
@@ -43,12 +49,11 @@ Typy z tego labu (diagram klas UML). Tylko view modele są klasami:
 
 ### Models/Cinema.swift
 
-Na górze `import CoreLocation`. Struktury Cinema i UserLocation z diagramu, obie nonisolated. Cinema jest Identifiable i Hashable, UserLocation jest Equatable. W Cinema tylko distanceInMeters jest var, z wartością początkową unknownDistance.
+Plik jest gotowy: struktury Cinema i UserLocation z diagramu i stała unknownDistance. W Cinema tylko distanceInMeters jest var, z wartością początkową unknownDistance, bo odległość znamy dopiero po znalezieniu położenia.
 
-Stałe w tym samym pliku:
+Proszę dopisać stałe:
 
 ```swift
-nonisolated let unknownDistance: CLLocationDistance = -1
 let noCinemaSelected = ""
 let cinemaNotFound = -1
 // Rynek, gdy położenie jest nieznane
@@ -60,7 +65,7 @@ let fallbackUserLocation = UserLocation(
     isKnown: false)
 ```
 
-Funkcje w tym samym pliku:
+I funkcje:
 
 | Funkcja | Co robi |
 | --- | --- |
@@ -75,7 +80,7 @@ Funkcje w tym samym pliku:
 
 ### Models/WroclawCinemas.swift
 
-Gotowy plik z danymi siedmiu kin z Apple Maps. Proszę skopiować docs/files/WroclawCinemas.swift do MyNextMovie/Models/.
+Gotowy plik z danymi siedmiu kin z Apple Maps. Nic tu nie piszą Państwo.
 
 ### Models/MapRegion.swift
 
@@ -93,7 +98,7 @@ Do tego regionMoved(\_:to:) (ten sam rozmiar, nowy środek) i isInRegion(\_:\_:)
 
 ### Testy
 
-Proszę skopiować docs/files/TestCinemas.swift do MyNextMovieTests/. Testy w pliku MyNextMovieTests/CinemaTests.swift, w dwóch zestawach:
+Kina do testów są gotowe w MyNextMovieTests/TestCinemas.swift. Testy w pliku MyNextMovieTests/CinemaTests.swift, w dwóch zestawach:
 
 | CinemaTests | WroclawCinemasTests |
 | --- | --- |
@@ -345,10 +350,9 @@ Zestaw InCinemasTests w pliku MovieDetailsTests.swift. Dzisiejszy dzień to w ni
 
 ### Zadanie 1: kina
 
-- [ ] Cinema.swift: Cinema, UserLocation, stałe i funkcje z tabeli.
-- [ ] WroclawCinemas.swift skopiowany z docs/files.
+- [ ] Gotowe pliki są w projekcie: Cinema.swift, WroclawCinemas.swift, TestCinemas.swift.
+- [ ] Cinema.swift: stałe i funkcje z tabeli.
 - [ ] MapRegion.swift: wroclawMapRegion, regionMoved, isInRegion.
-- [ ] TestCinemas.swift skopiowany z docs/files.
 - [ ] Testy CinemaTests i WroclawCinemasTests.
 
 ### Zadanie 2: mapa i położenie
