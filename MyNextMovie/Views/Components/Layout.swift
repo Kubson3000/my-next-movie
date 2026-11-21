@@ -20,6 +20,7 @@ let symbolNameRecentSearch = "clock.arrow.circlepath"
 let symbolNameAccount = "person.crop.circle"
 let symbolNameInSync = "checkmark.icloud"
 let symbolNameSearch = "magnifyingglass"
+let symbolNameWish = "sparkles"
 let symbolNameError = "exclamationmark.triangle"
 let symbolNameRatingStar = "star.fill"
 
