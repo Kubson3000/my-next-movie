@@ -207,6 +207,8 @@ end
 -- Rule 6. A long name (a function, a path, an address) may break after
 -- "/", ":", "(" and "_" and between a lower and an upper case letter, with no
 -- hyphen added. Without that one word wider than a column runs into the next.
+-- ASCII ranges, not %l %u %w: those follow the C locale, and on macOS they also
+-- match bytes of Polish letters in UTF-8, so the PDF would differ from CI.
 local min_breakable_length = 12
 local zero_width_space = "\\u{200b}"
 
@@ -214,7 +216,7 @@ local function is_long_name(text)
   if #text < min_breakable_length then
     return false
   end
-  return text:find("%l%u") ~= nil or text:find("[/:(_]%w") ~= nil
+  return text:find("[a-z][A-Z]") ~= nil or text:find("[/:(_][A-Za-z0-9]") ~= nil
 end
 
 -- The text as a Typst string with a zero width space at every break point.
@@ -228,8 +230,9 @@ local function breakable_string(text)
       escaped = "\\" .. character
     end
     table.insert(result, escaped)
-    local after_separator = character:find("[/:(_]") ~= nil and next_character:find("%w") ~= nil
-    local camel_case = character:find("%l") ~= nil and next_character:find("%u") ~= nil
+    local after_separator = character:find("[/:(_]") ~= nil
+      and next_character:find("[A-Za-z0-9]") ~= nil
+    local camel_case = character:find("[a-z]") ~= nil and next_character:find("[A-Z]") ~= nil
     if after_separator or camel_case then
       table.insert(result, zero_width_space)
     end
