@@ -124,10 +124,14 @@ private struct AppTabs: View {
     }
 
     private var searchTab: some View {
-        SearchView(
-            viewModel: SearchViewModel(searchMovies: searchTMDBMovies),
-            loadDetails: loadDetails
-        )
+        let viewModel = SearchViewModel(searchMovies: searchTMDBMovies)
+        let wishViewModel = WishSearchViewModel(
+            parseWish: parseWishWithAI,
+            searchByFilters: searchTMDBMoviesByFilters,
+            searchByText: searchTMDBMovies)
+        return SearchView(
+            viewModel: viewModel,
+            wishViewModel: wishViewModel, loadDetails: loadDetails)
     }
 
     private var cinemaMap: some View {

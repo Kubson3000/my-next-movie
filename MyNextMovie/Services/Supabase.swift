@@ -1,8 +1,9 @@
 import Foundation
 import Supabase
 
-// Requests to Supabase: the user account (Auth) and the `saved_movies` table.
-// The table and its Row Level Security rules are in supabase/migrations.
+// Requests to Supabase: the user account (Auth), the `saved_movies` table
+// and the `movie-filters` Edge Function.
+// The tables and their Row Level Security rules are in supabase/migrations.
 
 private let savedMoviesTable = "saved_movies"
 private let columnMovieId = "id"
@@ -66,6 +67,51 @@ let supabaseSavedMoviesCloud = SavedMoviesCloud(
     uploadMovies: uploadCloudSavedMovies,
     removeMovie: removeCloudSavedMovie
 )
+
+/// Edge Function in supabase/functions that turns one sentence into movie filters.
+let supabaseFunctionMovieFilters = "movie-filters"
+
+/// The HTTP status code goes after it.
+private let failedFunctionMessage = "The AI search failed with HTTP status "
+
+/// Body of the request to `movie-filters`.
+nonisolated struct MovieWishRequest: Encodable {
+    let wish: String
+}
+
+/// What `movie-filters` answers instead of filters, e.g. `{"message": "Sign in to search."}`.
+private nonisolated struct FunctionErrorAnswer: Decodable {
+    let message: String
+}
+
+/// Filters from the language model behind `movie-filters`. Has the type `MovieWishParser`.
+/// The client sends the token of the signed-in user, the function refuses other requests.
+func parseWishWithAI(_ wish: String) async throws
+    -> MovieFilters
+{
+    let client = try requireSupabaseClient()
+    let options = FunctionInvokeOptions(
+        body: MovieWishRequest(wish: wish))
+    do {
+        return try await client.functions.invoke(
+            supabaseFunctionMovieFilters, options: options)
+    } catch FunctionsError.httpError(let status, let data) {
+        throw SupabaseError(
+            message: functionErrorMessage(
+                statusCode: status, data: data))
+    }
+}
+
+/// The message of a failed function call, like the daily limit, or a text with the status code
+/// when the answer has no message.
+func functionErrorMessage(statusCode: Int, data: Data) -> String {
+    let errorAnswer = try? JSONDecoder().decode(FunctionErrorAnswer.self, from: data)
+    let message = errorAnswer?.message.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    if message.isEmpty {
+        return failedFunctionMessage + String(statusCode)
+    }
+    return message
+}
 
 /// The one client of the app, made by the first request. It keeps the session in the keychain,
 /// so the user stays signed in after a restart, also without internet.

@@ -4,18 +4,30 @@ import SwiftUI
 /// How long to wait after the last keystroke before searching.
 private let searchDelayAfterTyping = Duration.milliseconds(300)
 
-private let searchResultThumbnailWidth: CGFloat = 56
-private let searchResultTitleMaxLines = 2
 private let searchInputKeySeparator = "|"
+
+/// The movie-filters function refuses longer text. Counted in Unicode scalars, like there.
+private let maxWishLength = 200
+
+/// Shown above the spinner until the AI answers with filters.
+private let askingAIText = "Asking AI..."
 
 struct SearchView: View {
     @State private var viewModel: SearchViewModel
+    @State private var wishViewModel: WishSearchViewModel
+    /// Whether the list shows the movies of "Ask AI" instead of the plain search.
+    @State private var isShowingAIResults = false
     private let loadDetails: MovieDetailsLoader
 
     @Environment(\.modelContext) private var modelContext
 
-    init(viewModel: SearchViewModel, loadDetails: @escaping MovieDetailsLoader) {
+    init(
+        viewModel: SearchViewModel,
+        wishViewModel: WishSearchViewModel,
+        loadDetails: @escaping MovieDetailsLoader
+    ) {
         _viewModel = State(initialValue: viewModel)
+        _wishViewModel = State(initialValue: wishViewModel)
         self.loadDetails = loadDetails
     }
 
@@ -23,11 +35,18 @@ struct SearchView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 genreFilter
+                wishBar
                 content.frame(maxHeight: .infinity)
             }
             .navigationTitle("Search")
             .searchable(text: $viewModel.query, prompt: "Title or keyword")
-            .onSubmit(of: .search) { recordCurrentSearch() }
+            .onSubmit(of: .search, askAI)
+            .onChange(of: viewModel.query) {
+                isShowingAIResults = false
+            }
+            .onChange(of: viewModel.selectedGenreId) {
+                isShowingAIResults = false
+            }
             .navigationDestination(for: Movie.self) { movie in movieDetail(movie) }
             .task(id: searchInputKey(viewModel.query, viewModel.selectedGenreId)) {
                 await searchAfterPause()
@@ -43,8 +62,54 @@ struct SearchView: View {
         GenreFilter(selectedGenreId: viewModel.selectedGenreId, toggleGenre: viewModel.toggleGenre)
     }
 
+    /// "Ask AI" while there is text in the field. After asking, a grey line instead:
+    /// the filters the AI found, or why the movies come from a title search.
+    @ViewBuilder
+    private var wishBar: some View {
+        if isShowingAIResults {
+            wishSummary
+        } else if !viewModel.query.trimmingCharacters(in: .whitespaces).isEmpty {
+            askAIButton
+        }
+    }
+
+    private var askAIButton: some View {
+        Button("Ask AI", systemImage: symbolNameWish, action: askAI)
+            .buttonStyle(.bordered)
+            .disabled(wishViewModel.isSearching)
+            .padding(.bottom, spacingSmall)
+    }
+
+    private var wishSummary: some View {
+        Label(wishSummaryText, systemImage: symbolNameWish)
+            .font(.footnote)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal)
+            .padding(.bottom, spacingSmall)
+    }
+
+    private var wishSummaryText: String {
+        if wishViewModel.isPlainSearch {
+            return wishViewModel.plainSearchReason
+        }
+        if wishViewModel.isSearching && !hasAnyFilter(wishViewModel.filters) {
+            return askingAIText
+        }
+        return filtersSummary(wishViewModel.filters)
+    }
+
     @ViewBuilder
     private var content: some View {
+        if isShowingAIResults {
+            wishResults
+        } else {
+            plainResults
+        }
+    }
+
+    @ViewBuilder
+    private var plainResults: some View {
         switch viewModel.state {
         case .idle:
             SearchStartView(selectQuery: selectRecentSearch)
@@ -59,8 +124,35 @@ struct SearchView: View {
         }
     }
 
-    /// Runs when the user presses Search on the keyboard. Recording every keystroke
-    /// would fill the history with "m", "ma", "mat".
+    /// Idle only for a moment, before the search task starts.
+    @ViewBuilder
+    private var wishResults: some View {
+        switch wishViewModel.state {
+        case .idle, .loading:
+            ProgressView()
+        case .loaded:
+            SearchResults(movies: wishViewModel.movies, query: wishViewModel.wish)
+        case .failed:
+            ErrorView(title: "AI search failed", message: wishViewModel.errorMessage) {
+                Task { await wishViewModel.search() }
+            }
+        }
+    }
+
+    /// The "Ask AI" button and the Search key on the keyboard both run it.
+    /// Does nothing while the AI still answers the last wish.
+    private func askAI() {
+        recordCurrentSearch()
+        wishViewModel.wish = String(viewModel.query.unicodeScalars.prefix(maxWishLength))
+        if !wishViewModel.canSearch {
+            return
+        }
+        isShowingAIResults = true
+        Task { await wishViewModel.search() }
+    }
+
+    /// Runs when the user asks AI, with the button or the Search key on the keyboard.
+    /// Recording every keystroke would fill the history with "m", "ma", "mat".
     private func recordCurrentSearch() {
         recordSearch(modelContext, query: viewModel.query, now: Date.now)
     }
@@ -183,62 +275,13 @@ private struct RecentSearchRow: View {
     }
 }
 
-/// Found movies as a list, or a "no results" message when nothing matches.
-private struct SearchResults: View {
-    let movies: [Movie]
-    let query: String
-
-    @ViewBuilder
-    var body: some View {
-        if movies.isEmpty {
-            ContentUnavailableView.search(text: query)
-        } else {
-            List(movies) { movie in
-                SearchResultRow(movie: movie)
-            }
-            .listStyle(.plain)
-        }
-    }
-}
-
-/// One found movie: a small poster on the left, the title, subtitle and rating on the right.
-/// Tapping it opens the movie details.
-private struct SearchResultRow: View {
-    let movie: Movie
-
-    var body: some View {
-        NavigationLink(value: movie) {
-            HStack(spacing: spacingMedium) {
-                thumbnail
-                details
-            }
-            .padding(.vertical, spacingExtraSmall)
-        }
-    }
-
-    private var thumbnail: some View {
-        PosterView(movie: movie, cornerRadius: thumbnailCornerRadius)
-            .frame(width: searchResultThumbnailWidth)
-    }
-
-    private var details: some View {
-        VStack(alignment: .leading, spacing: spacingExtraSmall) {
-            Text(movie.title)
-                .font(.headline)
-                .lineLimit(searchResultTitleMaxLines)
-            Text(movieSubtitle(movie))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text(ratingWithStar(movie))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
-
 #Preview {
     SearchView(
         viewModel: SearchViewModel(searchMovies: searchTMDBMovies),
+        wishViewModel: WishSearchViewModel(
+            parseWish: parseWishWithAI,
+            searchByFilters: searchTMDBMoviesByFilters,
+            searchByText: searchTMDBMovies),
         loadDetails: fetchMovieDetails
     )
     .modelContainer(for: storedModelTypes, inMemory: true)

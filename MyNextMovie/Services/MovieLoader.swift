@@ -8,3 +8,11 @@ typealias MovieSearch = (_ query: String, _ genreId: Int) async throws -> [Movie
 
 /// Any function that returns the details of the movie with the id.
 typealias MovieDetailsLoader = (_ movieId: Int) async throws -> MovieDetails
+
+/// Any function that turns one sentence into movie filters, e.g. with a language model.
+typealias MovieWishParser =
+    (_ wish: String) async throws -> MovieFilters
+
+/// Any function that finds movies that match the filters.
+typealias FilteredMovieSearch =
+    (_ filters: MovieFilters) async throws -> [Movie]
