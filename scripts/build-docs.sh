@@ -22,10 +22,23 @@ for source in docs/diagrams/[!_]*.typ; do
         "$source" "${source%.typ}.svg" || status=1
 done
 
+# From lab 7 on the PDFs have two columns, like an IEEE article.
+# Labs 1 to 6 keep one column, the way students already have them.
+first_two_column_lab=7
+
 for source in docs/lab*.md; do
     name=$(basename "$source" .md)
-    echo "$source -> docs/$name.pdf"
-    pandoc "$source" --from gfm+smart --to typst --standalone \
+    # Labs 1 to 6 keep curly quotes too. From lab 7 on the text stays plain
+    # ASCII, the way students type it: "..." and straight quotes.
+    columns=1
+    markdown=gfm+smart
+    if [ "${name#lab}" -ge "$first_two_column_lab" ]; then
+        columns=2
+        markdown=gfm
+    fi
+    echo "$source -> docs/$name.pdf ($columns)"
+    pandoc "$source" --from "$markdown" --to typst --standalone \
+        --metadata columns="$columns" \
         --shift-heading-level-by=-1 \
         --wrap=none \
         --template docs/pandoc.typ \

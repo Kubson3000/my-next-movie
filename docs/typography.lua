@@ -8,11 +8,24 @@
 -- 2. A paragraph ending with ":" stays on the same page as the list, table or
 --    code it introduces, so "Funkcje:" never ends a page on its own.
 -- 3. A table stays on one page, so a page never starts with a leftover row.
---    All tables here are short enough to fit.
+--    All tables here are short enough to fit. In a two-column lab a table
+--    spans both columns, like table* in an IEEE paper, and floats to the top
+--    or bottom of a page: a column is too narrow for a name and its description.
 -- 4. Two-column tables get a first column wide enough for its longest word,
 --    so a long test name like searchWithGenreOnlyUsesDiscoverEndpoint fits.
+-- 5. Three dots stay three plain dots. Typst turns "..." into one ellipsis
+--    character, but the text shows what students type: "Mam ochotę na...",
+--    "migrations/..._create", "OPENROUTER_MODEL=...".
+-- 6. In a two-column lab long names break at "/", ":" and between words of
+--    camelCase, never with an added hyphen, so they stay inside the column.
+--
+-- The number of columns comes from the "columns" metadata, set by
+-- scripts/build-docs.sh.
 
 local nbsp = "\u{00A0}"
+
+-- Set from the metadata before the other rules run, see the end of the file.
+local two_columns = false
 
 local function is_single_letter_word(text)
   -- Also catches a letter after an opening bracket or quote: "(w", "„z".
@@ -161,8 +174,13 @@ local function insert_wrapped(result, options, wrapped_blocks)
 end
 
 local function insert_block(result, block)
-  if is_short_table(block) then
+  if is_short_table(block) and not two_columns then
     insert_wrapped(result, "breakable: false, above: 1.2em, below: 1.2em", { block })
+  elseif is_short_table(block) then
+    result:insert(pandoc.RawBlock("typst",
+      "#place(auto, scope: \"parent\", float: true, clearance: 1.2em, block(breakable: false)["))
+    result:insert(block)
+    result:insert(pandoc.RawBlock("typst", "])"))
   else
     result:insert(block)
   end
@@ -184,3 +202,92 @@ function Blocks(blocks)
   end
   return result
 end
+
+-- Rule 5: "..." goes to Typst escaped, so it is not turned into an ellipsis.
+-- Rule 6. A long name (a function, a path, an address) may break after
+-- "/", ":", "(" and "_" and between a lower and an upper case letter, with no
+-- hyphen added. Without that one word wider than a column runs into the next.
+-- ASCII ranges, not %l %u %w: those follow the C locale, and on macOS they also
+-- match bytes of Polish letters in UTF-8, so the PDF would differ from CI.
+local min_breakable_length = 12
+local zero_width_space = "\\u{200b}"
+
+local function is_long_name(text)
+  if #text < min_breakable_length then
+    return false
+  end
+  return text:find("[a-z][A-Z]") ~= nil or text:find("[/:(_][A-Za-z0-9]") ~= nil
+end
+
+-- The text as a Typst string with a zero width space at every break point.
+local function breakable_string(text)
+  local result = {}
+  for position = 1, #text do
+    local character = text:sub(position, position)
+    local next_character = text:sub(position + 1, position + 1)
+    local escaped = character
+    if character == "\\" or character == '"' then
+      escaped = "\\" .. character
+    end
+    table.insert(result, escaped)
+    local after_separator = character:find("[/:(_]") ~= nil
+      and next_character:find("[A-Za-z0-9]") ~= nil
+    local camel_case = character:find("[a-z]") ~= nil and next_character:find("[A-Z]") ~= nil
+    if after_separator or camel_case then
+      table.insert(result, zero_width_space)
+    end
+  end
+  return '"' .. table.concat(result) .. '"'
+end
+
+local function breakable_code(element)
+  if FORMAT ~= "typst" or not two_columns or not is_long_name(element.text) then
+    return nil
+  end
+  return pandoc.RawInline("typst", "#raw(" .. breakable_string(element.text) .. ")")
+end
+
+local function breakable_name(element)
+  if FORMAT ~= "typst" or not two_columns or not is_long_name(element.text) then
+    return nil
+  end
+  return pandoc.RawInline("typst",
+    "#text(hyphenate: false, " .. breakable_string(element.text) .. ")")
+end
+
+-- Tables span both columns, so their names have room and stay whole.
+local function skip_table(tbl)
+  return tbl, false
+end
+
+function Str(element)
+  if FORMAT ~= "typst" or not element.text:find("...", 1, true) then
+    return nil
+  end
+  local parts = pandoc.List({})
+  local rest = element.text
+  local start = rest:find("...", 1, true)
+  while start ~= nil do
+    if start > 1 then
+      parts:insert(pandoc.Str(rest:sub(1, start - 1)))
+    end
+    parts:insert(pandoc.RawInline("typst", "\\.\\.\\."))
+    rest = rest:sub(start + 3)
+    start = rest:find("...", 1, true)
+  end
+  if #rest > 0 then
+    parts:insert(pandoc.Str(rest))
+  end
+  return parts
+end
+
+local function read_columns(meta)
+  two_columns = meta.columns ~= nil and pandoc.utils.stringify(meta.columns) == "2"
+end
+
+-- The metadata first. Rule 6 runs next, from the top down, so it can skip tables.
+return {
+  { Meta = read_columns },
+  { traverse = "topdown", Table = skip_table, Str = breakable_name, Code = breakable_code },
+  { Inlines = Inlines, Table = Table, Blocks = Blocks, Str = Str },
+}
